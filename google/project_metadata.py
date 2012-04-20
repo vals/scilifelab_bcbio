@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 """Module for extracting a project's UppNex id from a spreadsheet on Google Docs"""
 
+# import os
 import bcbio.google
 import bcbio.google.spreadsheet
-# import os
+from bcbio.log import logger2
 
 
 class ProjectMetaData:
@@ -25,28 +26,35 @@ class ProjectMetaData:
 
         # Get the credentials
         encoded_credentials = bcbio.google.get_credentials(config)
-        assert encoded_credentials is not None, "The Google Docs credentials could not be found."
+        assert encoded_credentials is not None, \
+        "The Google Docs credentials could not be found."
 
         # Get the name of the spreadsheet where uppnex ids can be found
         gdocs_config = config.get("gdocs_upload", {})
         ssheet_title = gdocs_config.get("projects_spreadsheet", None)
         wsheet_title = gdocs_config.get("projects_worksheet", None)
-        assert ssheet_title is not None and wsheet_title is not None, "The names of the projects spreadsheet and worksheet on Google Docs could not be found."
+
+        assert ssheet_title is not None and wsheet_title is not None, \
+            "The names of the projects spreadsheet and worksheet on Google \
+            Docs could not be found."
 
         # Connect to the spread- and worksheet
         client = bcbio.google.spreadsheet.get_client(encoded_credentials)
         ssheet = bcbio.google.spreadsheet.get_spreadsheet(client, ssheet_title)
-        assert ssheet is not None, "Could not fetch %s from Google Docs." % ssheet_title
+
+        assert ssheet is not None, \
+            "Could not fetch %s from Google Docs." % ssheet_title
 
         # We allow multiple, comma-separated worksheets to be searched
         for wtitle in wsheet_title.split(','):
             wsheet = bcbio.google.spreadsheet.get_worksheet(client, ssheet, wtitle.strip())
             if not wsheet:
-                print("WARNING: Could not locate %s in %s." % (wsheet_title, ssheet_title))
+                logger2.warning("Could not locate %s in %s." % (wsheet_title, ssheet_title))
                 continue
 
             # Get the rows for the project
-            rows = bcbio.google.spreadsheet.get_rows_columns_with_constraint(client, ssheet, wsheet, columns, {name_column: project_name})
+            rows = bcbio.google.spreadsheet.get_rows_columns_with_constraint( \
+                client, ssheet, wsheet, columns, {name_column: project_name})
             if len(rows) == 0:
                 continue
 
