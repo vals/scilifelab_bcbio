@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 """Module for extracting a project's UppNex id from a spreadsheet on Google Docs"""
 
-# import os
 import bcbio.google
 import bcbio.google.spreadsheet
-from bcbio.log import logger2
+import os 
 
 
 class ProjectMetaData:
